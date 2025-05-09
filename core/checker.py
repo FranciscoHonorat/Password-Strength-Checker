@@ -5,22 +5,39 @@ class PasswordChecker:
     def __init__(self, password):
         self.password = password
         self.result = None
-
+    
     def analyze(self):
-        self.result = zxcvbn.zxcvbn(self.password)
-        return {
-            'score': self.result['score'],
-            'guess_time': self._format_time(self.result['crack_times']['offline_slow_hashing']),
-            'feedback': self.result['feedback']['warning'] or 'Sem problemas detectados',
-            'suggestions': self.result['feedback']['suggestions']
-        }
+        try:
+            self.result = zxcvbn.zxcvbn(self.password)
+            
+            # Verificação segura da estrutura de dados
+            crack_times = self.result.get('crack_times_display', {})
+            
+            return {
+                'score': self.result.get('score', 0),
+                'guess_time': self.format_time(crack_times.get('offline_slow_hashing', 'seconds')),
+                'feedback': self.result.get('feedback', {}).get('warning', "Sem problemas detectados"),
+                'suggestions': self.result.get('feedback', {}).get('suggestions', [])
+            }
+        except Exception as e:
+            print(f"Erro na análise: {str(e)}")
+            return {
+                'score': 0,
+                'guess_time': 'indeterminado',
+                'feedback': "Erro na análise",
+                'suggestions': []
+            }
     
     def format_time(self, time_str):
-        """Formata '3hours' para '3horas'"""
-        translations = {'second': 'segundo', 'minute': 'minuto', 'hour': 'hora',
-                        'day': 'dia', 'month': 'mês', 'year': 'ano'}
+        """Formata '3 hours' para '3 horas'"""
+        translations = {
+            'second': 'segundo', 'seconds': 'segundos',
+            'minute': 'minuto', 'minutes': 'minutos',
+            'hour': 'hora', 'hours': 'horas',
+            'day': 'dia', 'days': 'dias',
+            'month': 'mês', 'months': 'meses',
+            'year': 'ano', 'years': 'anos'
+        }
         for eng, pt in translations.items():
             time_str = time_str.replace(eng, pt)
-        
         return time_str
-    

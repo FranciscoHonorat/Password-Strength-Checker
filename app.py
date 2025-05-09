@@ -1,25 +1,26 @@
 from core.checker import PasswordChecker
-from core.hibp import HIBPChecker  # Corrigido aqui
+from core.hibp import HIBPChecker
 from utils.report import PDFReport
 import getpass
 
 def main():
-    print("=== Passaword Strength Checker===")
+    print("=== Password Strength Checker ===")
     password = getpass.getpass("Digite a senha para análise: ")
 
-    #análise local
+    # Análise local
     checker = PasswordChecker(password)
     result = checker.analyze()
 
+    # Verificação de vazamentos
     hibp = HIBPChecker()
     leaks = hibp.check(password)
 
-    #resultado
-    print(f"\nPontuação: {result['scorre']}/4")
+    # Resultado
+    print(f"\nPontuação: {result['score']}/4")
     print(f"Tempo para quebrar: {result['guess_time']}")
-    print(f"vazamentos {'Não encontramos' if leaks == 0 else f'{'leaks'} vazamentos'}")
+    print(f"Vazamentos: {'Não encontrados' if leaks == 0 else f'{leaks} vazamentos'}")
 
-    #gerar pdf
+    # Gerar PDF
     report = PDFReport()
     report.generate({
         'password': password,
@@ -29,5 +30,6 @@ def main():
     })
     print("\nRelatório gerado em report.pdf")
 
-    if __name__ == "__main__":
-        main()
+
+if __name__ == "__main__":
+    main()
